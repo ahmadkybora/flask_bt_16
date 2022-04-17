@@ -35,7 +35,7 @@ class ArticleSchema(ma.Schema):
 article_schema = ArticleSchema() 
 articles_schema = ArticleSchema(many=True)
 
-@app.route("/get", methods=['GET'])
+@app.route("/panel/users", methods=['GET'])
 def get_articles():
     articles = Articles.query.all()
     results = articles_schema.dump(articles)
