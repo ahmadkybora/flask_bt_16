@@ -1,79 +1,52 @@
-from dataclasses import field
-from email.policy import default
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-import datetime
-from flask_cors import CORS
+from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
+from telegram import Update, InlineKeyboardButton
+# from decouple import config
+import logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
 
-from requests import request
+logger = logging.getLogger(__name__)
+token = "2016260844:AAGwWwI6ZLA7cLUNNcAbbFz2W84wkJebZyo"
+# token = config("TOKEN")
 
-app=Flask(__name__)
-CORS(app)
- 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:''@localhost/flask'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# def start(update: Update, context: CallbackContext):
+#     keyboards = [
+#         [InlineKeyboardButton('1', callback_data='salam_1'), InlineKeyboardButton('2', callback_data='salam_2')], 
+#         [InlineKeyboardButton('3', callback_data='salam_3'), InlineKeyboardButton('4', callback_data='salam_4')], 
+#         [InlineKeyboardButton('5', callback_data='salam_5'), InlineKeyboardButton('6', callback_data='salam_6')], 
+#         [InlineKeyboardButton('7', callback_data='salam_7'), InlineKeyboardButton('8', callback_data='salam_8')], 
+#     ]
 
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
+#     update.effective_message.reply_text('ss', reply_markup=keyboards)
 
-class Articles(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
-    description = db.Column(db.String(100))
-    date = db.Column(db.DateTime, default = datetime.datetime.now)
-
-    def __init__(self, title, description):
-        self.title = title
-        self.description = description
-
-class ArticleSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'title', 'description', 'date')
+# def getVoice(update: Updater, context: CallbackContext):
+#     file = update.bot.get_file().download()
 
 
-article_schema = ArticleSchema() 
-articles_schema = ArticleSchema(many=True)
+# def getFile(update: Update, context: CallbackContext):
+#     # text = update.message.text
+#     text = "https://youtu.be/T7RNhMChbrQ"
+#     # file = context.bot.send_document(update.effective_chat.id, text)
+#     #file = context.bot.send_video(update.effective_chat.id, text)
+#     file = context.bot.sendPhoto(update.effective_chat.id, "https://fr.dreamstime.com/photo-stock-paysage-panoramique-d-automne-courant-for%C3%AAt-backg-nature-chute-image79856609")
+#     # file = context.bot.sendVideo(update.effective_chat.id, text)
+#     YouTube(content).streams.first().download(path)
+#     video = open(path, 'rb')
+#     bot.send_video(message.chat.id, video)
+#     context.bot.sendMessage(file)
 
-@app.route("/panel/users", methods=['GET'])
-def get_articles():
-    articles = Articles.query.all()
-    results = articles_schema.dump(articles)
-    return jsonify(results)
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text('h')
 
-@app.route("/get<id>/", methods=["GET"])
-def show_article(id):
-    article = Articles.query.get(id)
-    return article_schema.jsonify(article)
+def main():
+    updater = Updater(token, use_context=True)
+    dispatcher = updater.dispatcher
 
-@app.route("/add", methods=['POST'])
-def add_article():
-    title = request.json['title']
-    description = request.json['description']
+    # dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(MessageHandler(Filters.text, start))
+    # dispatcher.add_handler(CommandHandler("start", start))
+    updater.start_polling()
+    updater.idle()
 
-    articles = Articles(title, description)
-    db.session.add(articles)
-    db.session.commit()
-    return article_schema.jsonify(articles)
-
-@app.route("/update/<id>/", methods=["PUT"])
-def update_article(id):
-    article = Articles.query.get(id)
-
-    title = request.json['title']
-    description = request.json['description']
-
-    article.title = title
-    article.description = description
-
-    db.session.commit()
-    return article_schema.jsonify(article)
-
-@app.route("/delete/<id>/", methods=['DELETE'])
-def delete_article(id):
-    article = Articles.query.get(id)
-    db.session.delete(article)
-    db.session.commit()
-    return article_schema.jsonify(article) 
 if __name__ == '__main__':
-    app.run(debug=True)
+    main()
